@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aipe - Intelligent Automation Evolved</title>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: #121212;
+      color: #e0e0e0;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 20px;
+    }
+    a {
+      color: #00bfff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    header h1 {
+      font-size: 3rem;
+      color: #00bfff;
+      margin-bottom: 10px;
+    }
+    header p.tagline {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #a0d8ff;
+    }
+
+    /* Hero Image */
+    .hero-image {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #00bfff88;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 50px;
+    }
+    section h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: #00bfff;
+      border-bottom: 2px solid #00bfff;
+      padding-bottom: 5px;
+    }
+    section p {
+      font-size: 1.1rem;
+      color: #c0c0c0;
+      margin-bottom: 15px;
+    }
+    ul {
+      list-style-type: disc;
+      margin-left: 20px;
+      color: #c0c0c0;
+    }
+    ul li {
+      margin-bottom: 8px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #333;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* Button */
+    .btn-primary {
+      display: inline-block;
+      background-color: #00bfff;
+      color: #121212;
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      border: none;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .btn-primary:hover {
+      background-color: #0099cc;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 2.2rem;
+      }
+      section h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Aipe</h1>
+      <p class="tagline">Smarter Than Your Average AI.</p>
+    </header>
+
+    <img src="https://cdn.abacus.ai/images/c7a7563f-7e68-4d6f-ac62-f33ae6318f5d.jpg" alt="Aipe Logo - Ape Mascot with AI Elements" class="hero-image" />
+
+    <section id="about">
+      <h2>About Aipe</h2>
+      <p>
+        Aipe is a cutting-edge AI company dedicated to enhancing human performance through intelligent automation. Our proprietary AI systems combine advanced behavioral analysis, real-time optimization, and ethical AI principles to empower businesses across industries like insurance, real estate, and health coaching.
+      </p>
+      <p>
+        We believe in AI that augments human potential — smart, ethical, and designed to streamline decision-making and scale digital operations.
+      </p>
+    </section>
+
+    <section id="technology">
+      <h2>Our Technology</h2>
+      <p>Our platform leverages state-of-the-art tools and frameworks to deliver scalable, customizable AI solutions:</p>
+      <ul>
+        <li>OpenAI GPT-4 for advanced natural language understanding and reasoning</li>
+        <li>LangChain for contextual memory and intelligent chaining</li>
+        <li>Supabase for secure, scalable data storage and authentication</li>
+        <li>n8n for custom workflow orchestration and multi-system integration</li>
+        <li>Retell AI for voice-based performance support and feedback loops</li>
+      </ul>
+      <p>Our modular AI platform adapts quickly to different verticals, enabling rapid deployment and continuous innovation.</p>
+    </section>
+
+    <section id="mission">
+      <h2>Our Mission</h2>
+      <p>
+        To build AI technology that empowers humans, not replaces them. We focus on smart, ethical automation that drives measurable results and unlocks new levels of performance.
+      </p>
+      <p>
+        Join us on the journey to evolve intelligence and elevate performance.
+      </p>
+      <button class="btn-primary" onclick="window.location.href='mailto:contact@goaipe.com'">Contact Us</button>
+    </section>
+
+    <footer>
+      &copy; 2025 Aipe. All rights reserved.
+    </footer>
+  </div>
+</body>
+</html>
