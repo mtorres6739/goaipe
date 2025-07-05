@@ -41,7 +41,7 @@ const Contact = () => {
       // For Vercel: '/api/contact-form'
       // For Express: 'http://localhost:3001/api/contact' (or your server URL)
       
-      const endpoint = import.meta.env.VITE_CONTACT_ENDPOINT || '/.netlify/functions/contact-form';
+      const endpoint = import.meta.env.VITE_CONTACT_ENDPOINT || '/api/contact-form';
       
       const response = await fetch(endpoint, {
         method: 'POST',

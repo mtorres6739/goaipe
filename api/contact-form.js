@@ -22,6 +22,8 @@ export default async function handler(req, res) {
       "What is your name?": data.name,
       "What is your phone number?": data.phone,
       "What is your email address?": data.email,
+      "What is your company?": data.company || "Not provided",
+      "Insurance Type": data.insuranceType || "Not specified",
       "Do you have any questions?": data.message || "No",
       "submittedAt": new Date().toISOString(),
       "formMode": "production"
