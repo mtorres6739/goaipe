@@ -14,5 +14,10 @@ export const COMPANY_INFO = {
   tagline: 'The Evolution of Insurance AI',
   copyright: '© 2025 Artificial Intelligence for Performance Enhancement LLC. All rights reserved.',
   email: 'contact@goaipe.com',
-  description: 'AIPE is at the forefront of AI-driven performance enhancement. We develop cutting-edge AI solutions that streamline decision-making, scale digital operations, and empower human potential.'
+  phone: '+1 (555) 123-4567',
+  description: 'AIPE is at the forefront of AI-driven performance enhancement. We develop cutting-edge AI solutions that streamline decision-making, scale digital operations, and empower human potential.',
+  social: {
+    linkedin: 'https://www.linkedin.com/company/goaipe',
+    twitter: 'https://twitter.com/goaipe'
+  }
 };
