@@ -56,9 +56,9 @@ export default async function handler(req, res) {
       console.error(n8nError);
     }
 
-    // Email notification fallback using SMTP2GO
+    // Email notification using SMTP2GO (temporarily always send for testing)
     let emailSuccess = false;
-    if (!n8nSuccess && process.env.SMTP2GO_API_KEY) {
+    if (process.env.SMTP2GO_API_KEY) {
       try {
         const emailResponse = await fetch('https://api.smtp2go.com/v3/email/send', {
           method: 'POST',
