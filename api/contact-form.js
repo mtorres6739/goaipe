@@ -56,21 +56,23 @@ export default async function handler(req, res) {
       console.error(n8nError);
     }
 
-    // Email notification fallback
+    // Email notification fallback using SMTP2GO
     let emailSuccess = false;
-    if (!n8nSuccess && process.env.RESEND_API_KEY) {
+    if (!n8nSuccess && process.env.SMTP2GO_API_KEY) {
       try {
-        const emailResponse = await fetch('https://api.resend.com/emails', {
+        const emailResponse = await fetch('https://api.smtp2go.com/v3/email/send', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+            'X-Smtp2go-Api-Key': process.env.SMTP2GO_API_KEY,
+            'accept': 'application/json'
           },
           body: JSON.stringify({
-            from: 'AIPE Contact Form <onboarding@resend.dev>',
-            to: process.env.NOTIFICATION_EMAIL || 'torres.mathew@gmail.com',
+            sender: process.env.SMTP2GO_SENDER || 'noreply@goaipe.com',
+            to: [process.env.NOTIFICATION_EMAIL || 'mattorres@toroins.com'],
             subject: `New Contact Form Submission from ${formData.name}`,
-            html: `
+            reply_to: formData.email,
+            html_body: `
               <h2>New Contact Form Submission</h2>
               <p><strong>Name:</strong> ${formData.name}</p>
               <p><strong>Email:</strong> ${formData.email}</p>
@@ -81,19 +83,21 @@ export default async function handler(req, res) {
               <p><strong>Submitted:</strong> ${formData.submittedAt}</p>
               <hr>
               <p><small>Note: n8n webhook ${n8nSuccess ? 'succeeded' : `failed - ${n8nError}`}</small></p>
-            `
+            `,
+            text_body: `New Contact Form Submission\n\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nInsurance Type: ${formData.insuranceType}\nMessage: ${formData.message}\nSubmitted: ${formData.submittedAt}\n\nNote: n8n webhook ${n8nSuccess ? 'succeeded' : `failed - ${n8nError}`}`
           })
         });
 
         if (emailResponse.ok) {
+          const result = await emailResponse.json();
           emailSuccess = true;
-          console.log('Email notification sent successfully');
+          console.log('Email notification sent successfully via SMTP2GO:', result);
         } else {
           const errorData = await emailResponse.json();
-          console.error('Email sending failed:', errorData);
+          console.error('SMTP2GO email sending failed:', errorData);
         }
       } catch (error) {
-        console.error('Email service error:', error);
+        console.error('SMTP2GO email service error:', error);
       }
     }
 

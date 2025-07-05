@@ -37,8 +37,9 @@ export default async function handler(req, res) {
         response: responseData
       },
       emailFallback: {
-        configured: !!process.env.RESEND_API_KEY,
-        recipientEmail: process.env.NOTIFICATION_EMAIL || 'torres.mathew@gmail.com'
+        configured: !!process.env.SMTP2GO_API_KEY,
+        service: 'SMTP2GO',
+        recipientEmail: process.env.NOTIFICATION_EMAIL || 'mattorres@toroins.com'
       },
       timestamp: new Date().toISOString()
     });
@@ -47,8 +48,9 @@ export default async function handler(req, res) {
       status: 'error',
       error: error.message,
       emailFallback: {
-        configured: !!process.env.RESEND_API_KEY,
-        recipientEmail: process.env.NOTIFICATION_EMAIL || 'torres.mathew@gmail.com'
+        configured: !!process.env.SMTP2GO_API_KEY,
+        service: 'SMTP2GO',
+        recipientEmail: process.env.NOTIFICATION_EMAIL || 'mattorres@toroins.com'
       },
       timestamp: new Date().toISOString()
     });
