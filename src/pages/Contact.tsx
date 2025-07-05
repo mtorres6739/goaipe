@@ -43,6 +43,9 @@ const Contact = () => {
       
       const endpoint = import.meta.env.VITE_CONTACT_ENDPOINT || '/api/contact-form';
       
+      console.log('Submitting to endpoint:', endpoint);
+      console.log('Form data:', formData);
+      
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -51,7 +54,11 @@ const Contact = () => {
         body: JSON.stringify(formData)
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       const result = await response.json();
+      console.log('Response data:', result);
       
       if (result.success) {
         setSubmitStatus('success');
@@ -64,9 +71,11 @@ const Contact = () => {
           insuranceType: 'property-casualty'
         });
       } else {
+        console.error('Form submission failed:', result.message);
         setSubmitStatus('error');
       }
     } catch (error) {
+      console.error('Form submission error:', error);
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
