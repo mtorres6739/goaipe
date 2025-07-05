@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     const data = req.body;
     
     // Format data for n8n webhook
-    const n8nPayload = {
+    const formData = {
       name: data.name,
       phone: data.phone,
       email: data.email,
@@ -29,30 +29,98 @@ export default async function handler(req, res) {
       source: "goaipe.com"
     };
 
-    // TODO: Replace with your n8n webhook URL
-    // To create a webhook in n8n:
-    // 1. Create new workflow
-    // 2. Add Webhook node
-    // 3. Set to POST method
-    // 4. Copy the production webhook URL
-    const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://n8n-u40256.vm.elestio.app/webhook/0fc1b197-01f6-4464-8414-28cb759301da';
-    
-    // Forward to n8n
-    const response = await fetch(N8N_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(n8nPayload)
+    let n8nSuccess = false;
+    let n8nError = null;
+
+    // Try n8n webhook first
+    try {
+      const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://n8n-u40256.vm.elestio.app/webhook/0fc1b197-01f6-4464-8414-28cb759301da';
+      
+      const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (n8nResponse.ok) {
+        n8nSuccess = true;
+        console.log('Successfully sent to n8n webhook');
+      } else {
+        n8nError = `n8n webhook failed: ${n8nResponse.status} ${n8nResponse.statusText}`;
+        console.error(n8nError);
+      }
+    } catch (error) {
+      n8nError = `n8n webhook error: ${error.message}`;
+      console.error(n8nError);
+    }
+
+    // Email notification fallback
+    let emailSuccess = false;
+    if (!n8nSuccess && process.env.RESEND_API_KEY) {
+      try {
+        const emailResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+          },
+          body: JSON.stringify({
+            from: 'AIPE Contact Form <onboarding@resend.dev>',
+            to: process.env.NOTIFICATION_EMAIL || 'torres.mathew@gmail.com',
+            subject: `New Contact Form Submission from ${formData.name}`,
+            html: `
+              <h2>New Contact Form Submission</h2>
+              <p><strong>Name:</strong> ${formData.name}</p>
+              <p><strong>Email:</strong> ${formData.email}</p>
+              <p><strong>Phone:</strong> ${formData.phone}</p>
+              <p><strong>Company:</strong> ${formData.company}</p>
+              <p><strong>Insurance Type:</strong> ${formData.insuranceType}</p>
+              <p><strong>Message:</strong> ${formData.message}</p>
+              <p><strong>Submitted:</strong> ${formData.submittedAt}</p>
+              <hr>
+              <p><small>Note: n8n webhook ${n8nSuccess ? 'succeeded' : `failed - ${n8nError}`}</small></p>
+            `
+          })
+        });
+
+        if (emailResponse.ok) {
+          emailSuccess = true;
+          console.log('Email notification sent successfully');
+        } else {
+          const errorData = await emailResponse.json();
+          console.error('Email sending failed:', errorData);
+        }
+      } catch (error) {
+        console.error('Email service error:', error);
+      }
+    }
+
+    // Log submission for monitoring
+    console.log('Form submission processed:', {
+      formData,
+      n8nSuccess,
+      emailSuccess,
+      n8nError
     });
 
-    if (response.ok) {
-      return res.status(200).json({ success: true, message: 'Form submitted successfully' });
+    // Return success if either method worked
+    if (n8nSuccess || emailSuccess) {
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Form submitted successfully',
+        methods: {
+          n8n: n8nSuccess,
+          email: emailSuccess
+        }
+      });
     } else {
-      console.error('n8n submission failed:', response.status, response.statusText);
-      const errorText = await response.text();
-      console.error('Error details:', errorText);
-      return res.status(500).json({ success: false, message: 'Failed to submit form to n8n' });
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to process form submission',
+        error: n8nError
+      });
     }
   } catch (error) {
     console.error('Server error:', error);
