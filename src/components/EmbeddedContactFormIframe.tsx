@@ -139,12 +139,10 @@ const EmbeddedContactFormIframe = () => {
         className="w-full min-h-[700px] border-0 bg-transparent"
         style={{ 
           border: 'none',
-          overflow: 'hidden',
-          scrolling: 'no'
+          overflow: 'hidden'
         }}
         title="Contact Form"
         loading="lazy"
-        scrolling="no"
       />
     </div>
   );
