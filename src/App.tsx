@@ -10,7 +10,7 @@ const Terms = lazy(() => import('./pages/Terms'));
 const About = lazy(() => import('./pages/About'));
 const Research = lazy(() => import('./pages/Research'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
-const Contact = lazy(() => import('./pages/Contact'));
+const Contact = lazy(() => import('./pages/ContactSimple'));
 
 // Loading component
 const Loading = () => (
