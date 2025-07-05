@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
-import EmbeddedContactForm from '@/components/EmbeddedContactForm';
 import { COMPANY_INFO } from '@/utils/constants';
 
 const Contact = () => {
