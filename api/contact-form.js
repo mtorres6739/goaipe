@@ -17,20 +17,28 @@ export default async function handler(req, res) {
   try {
     const data = req.body;
     
-    // Format data for n8n
-    const n8nPayload = [{
-      "What is your name?": data.name,
-      "What is your phone number?": data.phone,
-      "What is your email address?": data.email,
-      "What is your company?": data.company || "Not provided",
-      "Insurance Type": data.insuranceType || "Not specified",
-      "Do you have any questions?": data.message || "No",
-      "submittedAt": new Date().toISOString(),
-      "formMode": "production"
-    }];
+    // Format data for n8n webhook
+    const n8nPayload = {
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      company: data.company || "Not provided",
+      insuranceType: data.insuranceType || "Not specified",
+      message: data.message || "No message",
+      submittedAt: new Date().toISOString(),
+      source: "goaipe.com"
+    };
 
+    // TODO: Replace with your n8n webhook URL
+    // To create a webhook in n8n:
+    // 1. Create new workflow
+    // 2. Add Webhook node
+    // 3. Set to POST method
+    // 4. Copy the production webhook URL
+    const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://n8n-u40256.vm.elestio.app/form/a3e78053-e150-4098-b7c2-e7cc8224580e';
+    
     // Forward to n8n
-    const response = await fetch('https://n8n-u40256.vm.elestio.app/form/a3e78053-e150-4098-b7c2-e7cc8224580e', {
+    const response = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,9 +49,13 @@ export default async function handler(req, res) {
     if (response.ok) {
       return res.status(200).json({ success: true, message: 'Form submitted successfully' });
     } else {
-      return res.status(500).json({ success: false, message: 'Failed to submit form' });
+      console.error('n8n submission failed:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Error details:', errorText);
+      return res.status(500).json({ success: false, message: 'Failed to submit form to n8n' });
     }
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Server error:', error);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 }
