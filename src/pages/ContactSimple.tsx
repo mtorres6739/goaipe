@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
-import N8NFormWrapper from '@/components/N8NFormWrapper';
+import CustomContactForm from '@/components/CustomContactForm';
 import { COMPANY_INFO } from '@/utils/constants';
 
 const ContactSimple = () => {
@@ -56,8 +56,9 @@ const ContactSimple = () => {
                 whileInView="animate"
                 viewport={{ once: true }}
                 variants={fadeInUp}
+                className="bg-background-light rounded-xl p-8 shadow-lg"
               >
-                <N8NFormWrapper />
+                <CustomContactForm />
               </motion.div>
 
               {/* Info Column */}
