@@ -1,4 +1,13 @@
-import nodemailer from 'nodemailer';
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+
+// Initialize SES client
+const sesClient = new SESClient({
+  region: process.env.REGION || 'us-west-1',
+  credentials: {
+    accessKeyId: process.env.SMTP_USER_NAME,
+    secretAccessKey: process.env.SMTP_PASSWORD,
+  },
+});
 
 export default async function handler(req, res) {
   // Only allow POST
@@ -34,23 +43,17 @@ export default async function handler(req, res) {
     let n8nSuccess = false;
     let n8nError = null;
 
-    // Try n8n webhook first (with shorter timeout)
+    // Try n8n webhook first
     try {
       const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://n8n-u40256.vm.elestio.app/webhook/0fc1b197-01f6-4464-8414-28cb759301da';
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
       
       const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
-        signal: controller.signal
+        body: JSON.stringify(formData)
       });
-
-      clearTimeout(timeoutId);
 
       if (n8nResponse.ok) {
         n8nSuccess = true;
@@ -64,22 +67,11 @@ export default async function handler(req, res) {
       console.error(n8nError);
     }
 
-    // Send email notification using SMTP (Amazon SES)
+    // Send email notification using Amazon SES
     let emailSuccess = false;
     let emailError = null;
 
     try {
-      // Create SMTP transporter for Amazon SES
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_ENDPOINT || 'email-smtp.us-west-1.amazonaws.com',
-        port: 587,
-        secure: false, // true for 465, false for other ports
-        auth: {
-          user: process.env.SMTP_USER_NAME,
-          pass: process.env.SMTP_PASSWORD
-        }
-      });
-
       const emailContent = `
         <html>
           <body style="font-family: Arial, sans-serif; color: #333;">
@@ -122,21 +114,36 @@ export default async function handler(req, res) {
         </html>
       `;
 
-      const mailOptions = {
-        from: process.env.FROM_EMAIL || 'mail@myaipe.com',
-        to: process.env.NOTIFICATION_EMAIL || 'mattorres@toroins.com',
-        replyTo: formData.email,
-        subject: `New Contact Form Submission from ${formData.name}`,
-        text: `New Contact Form Submission\n\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nInsurance Type: ${formData.insuranceType}\nMessage: ${formData.message}\nSubmitted: ${formData.submittedAt}\n\nSystem Status: n8n webhook ${n8nSuccess ? 'succeeded' : `failed - ${n8nError}`}`,
-        html: emailContent
-      };
+      const command = new SendEmailCommand({
+        Destination: {
+          ToAddresses: [process.env.NOTIFICATION_EMAIL || 'mattorres@toroins.com'],
+        },
+        Message: {
+          Body: {
+            Html: {
+              Charset: "UTF-8",
+              Data: emailContent,
+            },
+            Text: {
+              Charset: "UTF-8",
+              Data: `New Contact Form Submission\n\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nInsurance Type: ${formData.insuranceType}\nMessage: ${formData.message}\nSubmitted: ${formData.submittedAt}\n\nSystem Status: n8n webhook ${n8nSuccess ? 'succeeded' : `failed - ${n8nError}`}`,
+            },
+          },
+          Subject: {
+            Charset: "UTF-8",
+            Data: `New Contact Form Submission from ${formData.name}`,
+          },
+        },
+        Source: process.env.FROM_EMAIL || 'mail@myaipe.com',
+        ReplyToAddresses: [formData.email],
+      });
 
-      const info = await transporter.sendMail(mailOptions);
+      const response = await sesClient.send(command);
       emailSuccess = true;
-      console.log('Email sent successfully via SMTP:', info.messageId);
+      console.log('Email sent successfully via Amazon SES:', response.MessageId);
     } catch (error) {
       emailError = error.message;
-      console.error('SMTP email error:', error);
+      console.error('Amazon SES email error:', error);
     }
 
     // Log submission for monitoring
