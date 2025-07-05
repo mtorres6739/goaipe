@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
-import EmbeddedContactForm from '@/components/EmbeddedContactForm';
+import EmbeddedContactFormIframe from '@/components/EmbeddedContactFormIframe';
 import { COMPANY_INFO } from '@/utils/constants';
 
 const ContactSimple = () => {
@@ -57,7 +57,7 @@ const ContactSimple = () => {
                 viewport={{ once: true }}
                 variants={fadeInUp}
               >
-                <EmbeddedContactForm />
+                <EmbeddedContactFormIframe />
               </motion.div>
 
               {/* Info Column */}

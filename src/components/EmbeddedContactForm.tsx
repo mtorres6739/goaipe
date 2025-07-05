@@ -149,16 +149,29 @@ const EmbeddedContactForm = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // Load the n8n form script
+    const script = document.createElement('script');
+    script.src = 'https://n8n-u40256.vm.elestio.app/form/a3e78053-e150-4098-b7c2-e7cc8224580e';
+    script.async = true;
+    
+    // Add the script to the container
+    const container = document.getElementById('n8n-form-container');
+    if (container) {
+      container.appendChild(script);
+    }
+
+    // Cleanup
+    return () => {
+      if (container && script.parentNode) {
+        container.removeChild(script);
+      }
+    };
+  }, []);
+
   return (
     <div className="w-full">
-      <div 
-        id="n8n-form-container"
-        dangerouslySetInnerHTML={{
-          __html: `
-            <script src="https://n8n-u40256.vm.elestio.app/form/a3e78053-e150-4098-b7c2-e7cc8224580e"></script>
-          `
-        }}
-      />
+      <div id="n8n-form-container" className="min-h-[600px]" />
     </div>
   );
 };
