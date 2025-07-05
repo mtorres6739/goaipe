@@ -24,20 +24,18 @@ const CustomContactForm = () => {
     setSubmitStatus('idle');
 
     try {
-      // Submit directly to n8n webhook
-      const response = await fetch('https://n8n-u40256.vm.elestio.app/webhook/0fc1b197-01f6-4464-8414-28cb759301da', {
+      // Submit to our API endpoint which handles both n8n webhook and SES email
+      const response = await fetch('/api/contact-form', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          submittedAt: new Date().toISOString(),
-          source: 'goaipe.com'
-        })
+        body: JSON.stringify(formData)
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         setSubmitStatus('success');
         setFormData({
           name: '',
@@ -46,19 +44,24 @@ const CustomContactForm = () => {
           company: '',
           message: ''
         });
+        
+        // Log which methods succeeded for debugging
+        console.log('Form submission methods:', result.methods);
       } else {
         setSubmitStatus('error');
+        console.error('Form submission failed:', result);
       }
-    } catch {
+    } catch (error) {
       setSubmitStatus('error');
+      console.error('Form submission error:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="w-full">
-      <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
+    <div className="w-full h-full flex flex-col">
+      <h2 className="text-2xl font-bold mb-6 text-text-primary">Get in Touch</h2>
       
       {submitStatus === 'success' && (
         <div className="mb-6 p-4 bg-green-500/10 border border-green-500 rounded-lg">
@@ -72,10 +75,10 @@ const CustomContactForm = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 flex-1">
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-2 text-text-light">
+            <label htmlFor="name" className="block text-sm font-medium mb-2 text-text-primary">
               Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -85,12 +88,12 @@ const CustomContactForm = () => {
               required
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-background-light border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-light placeholder-text-muted"
+              className="w-full px-4 py-2 bg-surface border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-text-muted"
               placeholder="Your name"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2 text-text-light">
+            <label htmlFor="email" className="block text-sm font-medium mb-2 text-text-primary">
               Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -100,7 +103,7 @@ const CustomContactForm = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-background-light border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-light placeholder-text-muted"
+              className="w-full px-4 py-2 bg-surface border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-text-muted"
               placeholder="your@email.com"
             />
           </div>
@@ -108,7 +111,7 @@ const CustomContactForm = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium mb-2 text-text-light">
+            <label htmlFor="phone" className="block text-sm font-medium mb-2 text-text-primary">
               Phone
             </label>
             <input
@@ -117,12 +120,12 @@ const CustomContactForm = () => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-background-light border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-light placeholder-text-muted"
+              className="w-full px-4 py-2 bg-surface border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-text-muted"
               placeholder="+1 (555) 123-4567"
             />
           </div>
           <div>
-            <label htmlFor="company" className="block text-sm font-medium mb-2 text-text-light">
+            <label htmlFor="company" className="block text-sm font-medium mb-2 text-text-primary">
               Company
             </label>
             <input
@@ -131,14 +134,14 @@ const CustomContactForm = () => {
               name="company"
               value={formData.company}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-background-light border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-light placeholder-text-muted"
+              className="w-full px-4 py-2 bg-surface border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-text-muted"
               placeholder="Your company"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="message" className="block text-sm font-medium mb-2 text-text-light">
+          <label htmlFor="message" className="block text-sm font-medium mb-2 text-text-primary">
             Message <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -148,7 +151,7 @@ const CustomContactForm = () => {
             rows={4}
             value={formData.message}
             onChange={handleChange}
-            className="w-full px-4 py-2 bg-background-light border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none text-text-light placeholder-text-muted"
+            className="w-full px-4 py-2 bg-surface border border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none text-text-primary placeholder-text-muted"
             placeholder="Tell us about your insurance needs..."
           ></textarea>
         </div>

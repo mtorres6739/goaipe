@@ -1,3 +1,14 @@
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+
+// Initialize SES client
+const sesClient = new SESClient({
+  region: process.env.REGION || 'us-west-1',
+  credentials: {
+    accessKeyId: process.env.SMTP_USER_NAME,
+    secretAccessKey: process.env.SMTP_PASSWORD,
+  },
+});
+
 export default async function handler(req, res) {
   // Only allow POST
   if (req.method !== 'POST') {
@@ -56,49 +67,83 @@ export default async function handler(req, res) {
       console.error(n8nError);
     }
 
-    // Email notification using SMTP2GO (temporarily always send for testing)
+    // Send email notification using Amazon SES
     let emailSuccess = false;
-    if (process.env.SMTP2GO_API_KEY) {
-      try {
-        const emailResponse = await fetch('https://api.smtp2go.com/v3/email/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Smtp2go-Api-Key': process.env.SMTP2GO_API_KEY,
-            'accept': 'application/json'
-          },
-          body: JSON.stringify({
-            sender: process.env.SMTP2GO_SENDER || 'noreply@goaipe.com',
-            to: [process.env.NOTIFICATION_EMAIL || 'mattorres@toroins.com'],
-            subject: `New Contact Form Submission from ${formData.name}`,
-            reply_to: formData.email,
-            html_body: `
-              <h2>New Contact Form Submission</h2>
-              <p><strong>Name:</strong> ${formData.name}</p>
-              <p><strong>Email:</strong> ${formData.email}</p>
-              <p><strong>Phone:</strong> ${formData.phone}</p>
-              <p><strong>Company:</strong> ${formData.company}</p>
-              <p><strong>Insurance Type:</strong> ${formData.insuranceType}</p>
-              <p><strong>Message:</strong> ${formData.message}</p>
-              <p><strong>Submitted:</strong> ${formData.submittedAt}</p>
-              <hr>
-              <p><small>Note: n8n webhook ${n8nSuccess ? 'succeeded' : `failed - ${n8nError}`}</small></p>
-            `,
-            text_body: `New Contact Form Submission\n\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nInsurance Type: ${formData.insuranceType}\nMessage: ${formData.message}\nSubmitted: ${formData.submittedAt}\n\nNote: n8n webhook ${n8nSuccess ? 'succeeded' : `failed - ${n8nError}`}`
-          })
-        });
+    let emailError = null;
 
-        if (emailResponse.ok) {
-          const result = await emailResponse.json();
-          emailSuccess = true;
-          console.log('Email notification sent successfully via SMTP2GO:', result);
-        } else {
-          const errorData = await emailResponse.json();
-          console.error('SMTP2GO email sending failed:', errorData);
-        }
-      } catch (error) {
-        console.error('SMTP2GO email service error:', error);
-      }
+    try {
+      const emailContent = `
+        <html>
+          <body style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #00bfff;">New Contact Form Submission</h2>
+            <table style="border-collapse: collapse; width: 100%; margin-top: 20px;">
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;"><strong>Name:</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${formData.name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;"><strong>Email:</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;"><a href="mailto:${formData.email}">${formData.email}</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;"><strong>Phone:</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${formData.phone}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;"><strong>Company:</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${formData.company}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;"><strong>Insurance Type:</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${formData.insuranceType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;"><strong>Message:</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${formData.message}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;"><strong>Submitted:</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${new Date(formData.submittedAt).toLocaleString()}</td>
+              </tr>
+            </table>
+            <hr style="margin-top: 30px; border: 1px solid #eee;">
+            <p style="color: #666; font-size: 12px;">
+              <strong>System Status:</strong> n8n webhook ${n8nSuccess ? '✅ succeeded' : `❌ failed - ${n8nError}`}
+            </p>
+          </body>
+        </html>
+      `;
+
+      const command = new SendEmailCommand({
+        Destination: {
+          ToAddresses: [process.env.NOTIFICATION_EMAIL || 'mattorres@toroins.com'],
+        },
+        Message: {
+          Body: {
+            Html: {
+              Charset: "UTF-8",
+              Data: emailContent,
+            },
+            Text: {
+              Charset: "UTF-8",
+              Data: `New Contact Form Submission\n\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nInsurance Type: ${formData.insuranceType}\nMessage: ${formData.message}\nSubmitted: ${formData.submittedAt}\n\nSystem Status: n8n webhook ${n8nSuccess ? 'succeeded' : `failed - ${n8nError}`}`,
+            },
+          },
+          Subject: {
+            Charset: "UTF-8",
+            Data: `New Contact Form Submission from ${formData.name}`,
+          },
+        },
+        Source: process.env.FROM_EMAIL || 'mail@myaipe.com',
+        ReplyToAddresses: [formData.email],
+      });
+
+      const response = await sesClient.send(command);
+      emailSuccess = true;
+      console.log('Email sent successfully via Amazon SES:', response.MessageId);
+    } catch (error) {
+      emailError = error.message;
+      console.error('Amazon SES email error:', error);
     }
 
     // Log submission for monitoring
@@ -106,7 +151,8 @@ export default async function handler(req, res) {
       formData,
       n8nSuccess,
       emailSuccess,
-      n8nError
+      n8nError,
+      emailError
     });
 
     // Return success if either method worked
@@ -123,7 +169,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to process form submission',
-        error: n8nError
+        errors: {
+          n8n: n8nError,
+          email: emailError
+        }
       });
     }
   } catch (error) {
