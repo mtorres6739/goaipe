@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     // 2. Add Webhook node
     // 3. Set to POST method
     // 4. Copy the production webhook URL
-    const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://n8n-u40256.vm.elestio.app/form/a3e78053-e150-4098-b7c2-e7cc8224580e';
+    const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://n8n-u40256.vm.elestio.app/webhook/0fc1b197-01f6-4464-8414-28cb759301da';
     
     // Forward to n8n
     const response = await fetch(N8N_WEBHOOK_URL, {
